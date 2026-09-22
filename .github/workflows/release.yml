@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing release tag (for example, v1.2.3)'
+        description: 'New release tag to create (for example, v1.2.3)'
         required: true
         type: string
 
@@ -30,8 +30,19 @@ jobs:
           fi
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ env.RELEASE_TAG }}
           fetch-depth: 0
+      - name: Create new release tag
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          existing="$(git ls-remote --tags origin "refs/tags/$RELEASE_TAG")"
+          if [[ -n "$existing" ]]; then
+            echo "Release tag $RELEASE_TAG already exists; choose a new version." >&2
+            exit 1
+          fi
+          git tag "$RELEASE_TAG" "$GITHUB_SHA"
+          git push origin "refs/tags/$RELEASE_TAG"
+          git checkout --detach "refs/tags/$RELEASE_TAG"
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
