@@ -1,0 +1,12 @@
+version: 2
+
+builds:
+  - id: nanolathe
+    main: ./cmd/nanolathe
+    binary: nanolathe
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+    goarch:
+      - amd64
